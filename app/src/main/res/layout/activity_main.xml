@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="16dp"
-    android:background="#effef7"
+    android:background="#e0e7ff"
     tools:context=".MainActivity">
 
     <TextView
@@ -15,7 +15,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
         android:text="Password Manager"
-        android:textColor="#03301f"
+        android:textColor="#1e1b4b"
         android:fontFamily="@font/poppinssemibold"
         android:textSize="32sp"
         android:textStyle="bold"
@@ -53,7 +53,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.949"
-        android:backgroundTint="#108554"
+        android:backgroundTint="#4338ca"
         />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

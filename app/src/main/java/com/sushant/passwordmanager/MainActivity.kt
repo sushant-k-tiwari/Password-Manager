@@ -52,11 +52,16 @@ class MainActivity : AppCompatActivity() {
             .setView(dialogView)
             .setTitle("Add New Password")
             .setPositiveButton("Save") { dialog, which ->
-                val platformName = dialogView.findViewById<EditText>(R.id.editTextPlatform).text.toString()
-                val password = dialogView.findViewById<EditText>(R.id.editTextPassword).text.toString()
+                val platformName = dialogView.findViewById<EditText>(R.id.editTextPlatform).text.toString().trim()
+                val username = dialogView.findViewById<EditText>(R.id.editTextUsername).text.toString().trim()
+                val password = dialogView.findViewById<EditText>(R.id.editTextPassword).text.toString().trim()
 
-                savePassword(platformName, password)
-                addPasswordToView(platformName, password)
+                if (platformName.isNotEmpty() && username.isNotEmpty() && password.isNotEmpty()) {
+                    savePassword(platformName, username, password)
+                    addPasswordToView(platformName, username, password)
+                } else {
+                    Toast.makeText(this@MainActivity, "All fields are required", Toast.LENGTH_SHORT).show()
+                }
             }
             .setNegativeButton("Cancel") { dialog, which ->
                 dialog.dismiss()
@@ -66,28 +71,35 @@ class MainActivity : AppCompatActivity() {
         dialog.show()
     }
 
-    private fun savePassword(platformName: String, password: String) {
+    private fun savePassword(platformName: String, username: String, password: String) {
         val passwords = sharedPreferences.getStringSet("passwords", mutableSetOf())?.toMutableSet()
-        passwords?.add("$platformName:$password")
+        passwords?.add("$platformName:$username:$password")
         sharedPreferences.edit().putStringSet("passwords", passwords).apply()
     }
 
     private fun loadPasswords() {
         val passwords = sharedPreferences.getStringSet("passwords", mutableSetOf()) ?: return
         passwords.forEach { entry ->
-            val (platformName, password) = entry.split(":")
-            addPasswordToView(platformName, password)
+            val parts = entry.split(":")
+            if (parts.size == 3) {
+                val platformName = parts[0]
+                val username = parts[1]
+                val password = parts[2]
+                addPasswordToView(platformName, username, password)
+            }
         }
     }
 
-    private fun addPasswordToView(platformName: String, password: String) {
+    private fun addPasswordToView(platformName: String, username: String, password: String) {
         val inflater = LayoutInflater.from(this)
         val passwordCardView = inflater.inflate(R.layout.item_password, passwordContainer, false) as CardView
 
         val tvPlatformName: TextView = passwordCardView.findViewById(R.id.tvPlatformName)
+        val tvUsername: TextView = passwordCardView.findViewById(R.id.tvUsername)
         val tvPassword: TextView = passwordCardView.findViewById(R.id.tvPassword)
 
         tvPlatformName.text = platformName
+        tvUsername.text = username
         tvPassword.text = password
 
         // Initially hide the password
@@ -117,22 +129,19 @@ class MainActivity : AppCompatActivity() {
 
         // Set a long-click listener to delete the entry
         passwordCardView.setOnLongClickListener {
-            showDeleteConfirmationDialog(platformName, password, passwordCardView)
+            showDeleteConfirmationDialog(platformName, username, password, passwordCardView)
             true
         }
 
         passwordContainer.addView(passwordCardView)
     }
 
-
-
-
-    private fun showDeleteConfirmationDialog(platformName: String, password: String, cardView: View) {
+    private fun showDeleteConfirmationDialog(platformName: String, username: String, password: String, cardView: View) {
         val dialogBuilder = AlertDialog.Builder(this)
             .setTitle("Delete Entry")
             .setMessage("Are you sure you want to delete?")
             .setPositiveButton("Delete") { dialog, which ->
-                deletePassword(platformName, password)
+                deletePassword(platformName, username, password)
                 passwordContainer.removeView(cardView)
             }
             .setNegativeButton("Cancel") { dialog, which ->
@@ -143,9 +152,9 @@ class MainActivity : AppCompatActivity() {
         dialog.show()
     }
 
-    private fun deletePassword(platformName: String, password: String) {
+    private fun deletePassword(platformName: String, username: String, password: String) {
         val passwords = sharedPreferences.getStringSet("passwords", mutableSetOf())?.toMutableSet()
-        passwords?.remove("$platformName:$password")
+        passwords?.remove("$platformName:$username:$password")
         sharedPreferences.edit().putStringSet("passwords", passwords).apply()
     }
 }
