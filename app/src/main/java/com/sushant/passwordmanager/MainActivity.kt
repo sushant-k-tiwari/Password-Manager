@@ -90,23 +90,42 @@ class MainActivity : AppCompatActivity() {
         tvPlatformName.text = platformName
         tvPassword.text = password
 
+        // Initially hide the password
+        tvPassword.inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
+
+        // Handle single tap to show/hide password and double tap to copy password
+        passwordCardView.setOnClickListener(object : View.OnClickListener {
+            private var lastTapTime: Long = 0
+
+            override fun onClick(view: View?) {
+                val currentTime = System.currentTimeMillis()
+                if (currentTime - lastTapTime < 300) {  // Double-tap detected
+                    val clipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                    val clip = ClipData.newPlainText("Password", password)
+                    clipboardManager.setPrimaryClip(clip)
+                    Toast.makeText(this@MainActivity, "Password copied to clipboard", Toast.LENGTH_SHORT).show()
+                } else {  // Single tap detected
+                    if (tvPassword.inputType == android.text.InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD) {
+                        tvPassword.inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
+                    } else {
+                        tvPassword.inputType = android.text.InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+                    }
+                }
+                lastTapTime = currentTime
+            }
+        })
+
         // Set a long-click listener to delete the entry
         passwordCardView.setOnLongClickListener {
             showDeleteConfirmationDialog(platformName, password, passwordCardView)
             true
         }
 
-        // Set an OnClickListener to copy the password to clipboard
-        passwordCardView.setOnClickListener {
-            val clipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-            val clip = ClipData.newPlainText("Password", password)
-            clipboardManager.setPrimaryClip(clip)
-            Toast.makeText(this, "Password copied to clipboard", Toast.LENGTH_SHORT).show()
-        }
-
-
         passwordContainer.addView(passwordCardView)
     }
+
+
+
 
     private fun showDeleteConfirmationDialog(platformName: String, password: String, cardView: View) {
         val dialogBuilder = AlertDialog.Builder(this)
